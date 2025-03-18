@@ -2,10 +2,12 @@ import atexit
 import base64
 import glob
 import os
+import platform
 import time
 
 from DrissionPage import ChromiumPage, ChromiumOptions
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_file
 
 app = Flask(__name__)
@@ -42,12 +44,15 @@ def json(code, msg, data=''):
 
 def url_to_img(url: str, filename: str, elements: str = None):
     co = ChromiumOptions()
-    co.set_paths(browser_path=r'/usr/bin/google-chrome')
-    co.set_argument('--no-sandbox')  # 无沙盒模式
     co.set_argument('--headless=new')  # 无头
+
+    if platform.system() != "Windows":
+        co.set_argument('--no-sandbox')  # 无沙盒模式
+        co.set_paths(browser_path=r'/usr/bin/google-chrome')
+        co.set_argument('--disable-gpu')  # 无gpu
+
+    co.set_argument('--start-maximized')  # 设置启动时最大化
     # co.set_argument('--remote-debugging-port=9300')  # 端口设置
-    co.set_argument('--disable-gpu')  # 无gpu
-    co.set_argument('--start-maximized') # 设置启动时最大化
     # co.set_local_port("9300")
     co.set_timeouts(base=5)
     try:
@@ -59,8 +64,8 @@ def url_to_img(url: str, filename: str, elements: str = None):
         else:
             page.get_screenshot(f'./images/{filename}')
 
-        page.quit() # 关闭浏览器。
-        page.close() # 关闭连接。
+        page.quit()  # 关闭浏览器。
+        page.close()  # 关闭连接。
         return ''
     except Exception as e:
         return e
@@ -108,4 +113,5 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=8080)
+    load_dotenv()
+    app.run(debug=False, host='0.0.0.0', port=os.getenv('PORT', 8080))

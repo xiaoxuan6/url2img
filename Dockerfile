@@ -43,6 +43,8 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && \
     chmod +x images
 
-EXPOSE 8080
+ENV PORT=8080
+
+EXPOSE $PORT
 
 CMD ["sh", "-c", "python main.py"]

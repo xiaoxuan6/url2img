@@ -52,3 +52,17 @@ http://127.0.0.1:8080/api/img?url=https://www.drissionpage.cn/browser_control/br
 ```curl
 http://127.0.0.1:8080/api/img/base64?url=https://www.drissionpage.cn/browser_control/browser_options/
 ```
+
+# Docker
+
+（默认）端口
+
+```docker
+docker run --name url2img -p 8080:8080 -d ghcr.io/xiaoxuan6/url2img:v1.1.0
+```
+
+自定义端口
+
+```docker
+docker run --name url2img -p 9990:9990 -e PORT=9990 -d ghcr.io/xiaoxuan6/url2img:v1.1.0
+```
