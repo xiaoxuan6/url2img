@@ -1,44 +1,34 @@
-FROM python:3.12.9-alpine3.21
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# 安装必要的依赖和 Chromium 浏览器
-RUN apk update && apk add --no-cache \
-    bash \
-    curl \
-    gcc \
-    g++ \
-    make \
-    libc-dev \
-    linux-headers \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    fontconfig \
-    ttf-dejavu \
-    ttf-liberation \
-    ttf-freefont \
-    font-noto \
-    font-noto-cjk \
-    font-noto-emoji \
-    tzdata
+# 安装系统依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg \
+    ca-certificates \
+    tzdata \
+    fonts-dejavu \
+    fonts-liberation \
+    fonts-noto \
+    fonts-noto-cjk \
+    fonts-noto-color-emoji \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# 刷新字体缓存
-RUN fc-cache -f -v
+# 安装 Google Chrome
+RUN mkdir -p /usr/share/keyrings \
+    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome.gpg && \
+    sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list' && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# 设置时区为上海
-RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
+# 设置时区
+ENV TZ=Asia/Shanghai
 
-# 设置环境变量
-ENV CHROME_BIN=/usr/bin/chromium-browser
-ENV CHROME_PATH=/usr/lib/chromium/
-
-# 确保 Chromium 浏览器可执行
-RUN ln -sf /usr/bin/chromium-browser /usr/bin/google-chrome
-
-COPY . /app
+COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ && \
     chmod +x images
